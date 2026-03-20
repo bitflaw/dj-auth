@@ -15,6 +15,7 @@
       devShells.${system}.default = pkgs.mkShell {
         buildInputs = [
           pkgs.python3
+          pkgs.pylyzer
         ];
         shellHook = ''
           export SHELL="${pkgs.bashInteractive}/bin/bash"

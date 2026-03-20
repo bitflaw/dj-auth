@@ -1,3 +1,9 @@
 .direnv
 .cache
 .venv
+auth_pkg/.env
+auth_pkg/db.sqlite3
+auth_pkg/auth_/migrations
+auth_pkg/auth_pkg/__pycache__
+auth_pkg/auth_/__pycache__
+auth_pkg/auth_/auth_services/__pycache__
