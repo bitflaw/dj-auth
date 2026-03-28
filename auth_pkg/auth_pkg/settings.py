@@ -1,13 +1,13 @@
-from pathlib import Path
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG')
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [os.getenv('ALLOWED_HOSTS')]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,10 +32,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'auth_pkg.urls'
+AUTH_USER_MODEL = 'auth_.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],
+}
+
+SIMPLE_JWT = {
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 TEMPLATES = [
