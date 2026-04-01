@@ -41,7 +41,14 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_TYPES': ('Bearer',)
+}
+
+REDIS = {
+    'HOST': os.getenv('REDIS_HOST'),
+    'PORT': os.getenv('REDIS_PORT'),
+    'RDECODE': os.getenv('REDIS_RDECODE', True),
+    'TTL': os.getenv('REDIS_TTL', 3600)
 }
 
 TEMPLATES = [

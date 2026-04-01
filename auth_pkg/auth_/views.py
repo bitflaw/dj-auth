@@ -4,7 +4,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status, exceptions
 from .auth_services import *
 
-auth_service = session_service.SessionAuthService() #JWTAuthService()
+auth_service = jwt_service.JWTAuthService()
+#session_service.SessionAuthService() 
 
 class LoginView (APIView):
 
@@ -39,12 +40,4 @@ class InternalVerifyView (APIView):
         if token is None:
             return Response ({"message": "No token provided as cookie for verification"},
                              status=status.HTTP_400_BAD_REQUEST)
-        try:
-            verified = auth_service.verify(token)
-            if verified is not None:
-                return Response({"user_id": verified[0].id},
-                                status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response (#{"message": str(e)},
-                             status=status.HTTP_401_UNAUTHORIZED
-                             )
+        return auth_service.verify(token)

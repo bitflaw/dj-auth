@@ -1,14 +1,24 @@
 import secrets
+import redis
+import json
+from django.forms.models import model_to_dict
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
+from rest_framework_simplejwt import exceptions 
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from .. import models
+from django.conf import settings
 
 
 class SessionAuthService ():
+
+    rhost=settings.REDIS.get('HOST')
+    rport=settings.REDIS.get('PORT')
+    rdecode=settings.REDIS.get('RDECODE')
+    ttl = settings.REDIS.get('TTL')
 
     def login (self, request):
         username = request.data.get('username')
@@ -28,6 +38,15 @@ class SessionAuthService ():
                         session_id=session_token,
                         expiry=exp
                     )
+            user_dict = model_to_dict (user)
+
+            r = redis.Redis(
+                    host=self.rhost,
+                    port=self.rport,
+                    decode_responses=self.rdecode
+                    )
+
+            res = r.setex(f"token:{session_token}", self.ttl, json.dumps(user_dict, default=str))
 
             response = Response ({"message": "Logged in"}, status=status.HTTP_200_OK)
             response.set_cookie (
@@ -45,29 +64,54 @@ class SessionAuthService ():
 
     def verify (self, token):
         if not token:
-            return None
+            raise exceptions.AuthenticationFailed("Session is invalid!")
 
         try:
             session = models.Session.objects.select_related('user_id').get(
                         session_id=token,
-                        expiry__gt=datetime.now()
+                        expiry__gt=timezone.now()
                         )
 
+            r = redis.Redis(
+                    host=self.rhost,
+                    port=self.rport,
+                    decode_responses=self.rdecode
+                    )
+            res = r.get(f"token:{token}")
+            if res == "_\r\n":
+                raise exceptions.AuthenticationFailed("Session is invalid!")
+
+            user_dict = model_to_dict(session.user_id)
+            res = r.setex(f"token:{token}", self.ttl, json.dumps(user_dict, default=str))
+            r.close()
+
+            return Response(status=status.HTTP_200_OK)
         except models.Session.DoesNotExist:
+            r.close()
             raise exceptions.AuthenticationFailed('Invalid or expired session')
-
-        return (session.user_id, None)
-
 
     def logout (self, request):
         session_id = request.COOKIES.get('session_id')
         logout_all = request.query_params.get('logout_all', False)
+        r = redis.Redis(
+                host=self.rhost,
+                port=self.rport,
+                decode_responses=self.rdecode
+            )
 
-        if logout_all:
-            models.Session.objects.filter(user_id=request.user.id).delete()
+        try:
+            if logout_all:
+                sessions = models.Session.objects.filter(user_id=request.user.id)
+                [r.delete(f"token:{session.session_id}") for session in sessions]
+            else:
+                session = models.Session.objects.get(session_id=session_id)
+                session.delete()
+                res = r.delete(f"token:{session_id}")
+        except models.Session.DoesNotExist:
+            r.close()
+            raise exceptions.AuthenticationFailed('Session does not exist!')
 
-        models.Session.objects.get(session_id=session_id).delete()
-
+        r.close()
         response = Response({"message": "Logged out"}, status=status.HTTP_200_OK)
         response.delete_cookie('session_id')
         return response
