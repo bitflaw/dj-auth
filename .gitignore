@@ -1,7 +1,7 @@
 .direnv
 .cache
 .venv
-auth_pkg/.env
+.env
 auth_pkg/db.sqlite3
 auth_pkg/auth_/migrations
 auth_pkg/auth_pkg/__pycache__

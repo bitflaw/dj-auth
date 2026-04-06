@@ -1,0 +1,7 @@
+.git
+dj-external
+flake.nix
+flake.lock
+README.md
+.envrc
+.gitignore

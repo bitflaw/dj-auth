@@ -2,11 +2,11 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG', False)
 ALLOWED_HOSTS = [os.getenv('ALLOWED_HOSTS')]
 
 INSTALLED_APPS = [
@@ -45,8 +45,8 @@ SIMPLE_JWT = {
 }
 
 REDIS = {
-    'HOST': os.getenv('REDIS_HOST'),
-    'PORT': os.getenv('REDIS_PORT'),
+    'HOST': os.getenv('REDIS_HOST', 'localhost'),
+    'PORT': os.getenv('REDIS_PORT', 6379),
     'RDECODE': os.getenv('REDIS_RDECODE', True),
     'TTL': os.getenv('REDIS_TTL', 3600)
 }
@@ -68,19 +68,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'auth_pkg.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': f"django.db.backends.{os.getenv('DB_ENGINE', 'postgresql')}",
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWD'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', 5432)
     }
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

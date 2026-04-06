@@ -1,11 +1,11 @@
 import os
-import requests
 import redis
-from dotenv import load_dotenv
-from rest_framework import authentication, exceptions
-from . import models
-from django.contrib.auth import get_user_model
 import json
+import requests
+from . import models
+from dotenv import load_dotenv
+from django.contrib.auth import get_user_model
+from rest_framework import authentication, exceptions
 
 load_dotenv()
 
@@ -31,16 +31,14 @@ class RemoteAuth (authentication.BaseAuthentication):
         r = redis.Redis(
                 host=os.getenv('REDIS_HOST'),
                 port=os.getenv('REDIS_PORT'),
-                decode_responses=os.getenv('REDIS_DECODE')
+                decode_responses=os.getenv('REDIS_RDECODE')
                 )
 
         session_id = request.COOKIES.get ('session_id', None)
         access_token = request.COOKIES.get ('access_token', None)
-        # oauth_token = request.COOKIES.get ('oauth_token', None)
         cookie_pack = {
             "session_id": session_id,
             "access_token": access_token,
-            # "oauth_token": oauth_token,
         }
         try:
             token = session_id if session_id is not None
